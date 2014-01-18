@@ -1,0 +1,226 @@
+<html>
+ <head>
+  <title>Test Page for CSC 575 Project</title>
+	<script language="javascript" src="Testing/app/jsUnitCore.js"></script>
+	<script type='text/javascript' src='http://code.jquery.com/jquery-1.6.4.min.js'></script>
+	<script type='text/javascript' src='js/lib/dsp/dsp.js'></script>
+	
+	<script type='text/javascript' src='js/functions.js'></script>
+	<script type='text/javascript' src='js/DataTypes.js'></script>
+	<script type='text/javascript' src='js/AppObjects.js'></script>
+<!--
+	<script type='text/javascript' src='js/AudioClip.js'></script>
+	<script type='text/javascript' src='js/AudioStretcher.js'></script>
+	--> 
+	<!--
+	<script type='text/javascript' src='js/appObjects.js'></script>
+	<script type='text/javascript' src='webCLObjects.js'></script>
+	<script id="clProgramVectorAdd" type="text/x-opencl" src='webCLKernels.txt'></script>
+	-->  
+</head>
+	
+ <body>
+  <script language="javascript">
+	function testStringTitle(){
+		var str = new String("hello");
+		assert(str.title() == 'Hello');
+	}
+
+	function testAppObjectParams() {
+		var test = new AppObject()
+		
+		assert(test.name=="AppObject");
+		assert(test.id=="AppObject"+test.getOID());
+		assert(test.getParent() == undefined);
+		
+		test.name = "testName";
+		assert(test.name=="testName");
+		
+		test.id = "testId";
+		assert(test.id=="testId");
+		
+		test = new AppObject({'name':'testName','id':'testId'})
+		assert(test.name=="testName");
+		assert(test.id=="testId");
+		
+		TestObject.inheritsFrom(AppObject);
+		function TestObject(args){
+			AppObject.call(this,args);
+			this._init({name:'TestObject',width:300});
+		}
+		
+		test = new TestObject();
+		assert(test.name=="TestObject");
+		assert(test.id=="AppObject"+test.getOID());
+		assert(test.width==300);
+	}
+	function testAppObjectSetParent() {
+		TestObject.inheritsFrom(AppObject);
+		function TestObject(args){
+			AppObject.call(this,args);
+		}
+		
+		test1 = new TestObject();
+		test2 = new TestObject();
+		
+		test2.setParent(test1);
+		assert(test2.getParent() == test1)
+		test2.setParent();
+		assert(test2.getParent() == undefined)
+		
+	}
+	function testAppObjectChildren() {
+		test1 = new AppObject();
+		test2 = new AppObject();
+		
+		test1.addChild(test2);
+		assert(test1.hasChild(test2)!=-1);
+		assert(test2.getParent() == test1)
+		test1.removeChild(test2)
+		assert(test1.hasChild(test2)==-1)
+		assert(test2.getParent() == undefined)
+		
+		
+		
+	}
+	function testAppObjectInitParent() {
+		
+		test1 = new AppObject();
+		test2 = new AppObject({parent:test1});
+
+		assert(test2.getParent()==test1);
+		test2.setParent();
+		assert(test2.getParent() == undefined)
+	
+	}
+	function testAppObjectInitChildren() {
+		
+		test1 = new AppObject({name:'test1'});
+		test2 = new AppObject({name:'test2'});
+		
+		// Single child
+		test3 = new AppObject({children:[test1]});
+		assert(test3.hasChild(test1)!=-1);
+		
+		// Multiple children
+		test3 = new AppObject({children:[test2,test1]});
+		assert(test3.hasChild(test1)!=-1);
+		assert(test3.hasChild(test2)!=-1);
+	
+	}
+	function testAppObjectInstanceArgs(){
+		Test.inheritsFrom(AppObject);
+		function Test(args){
+			AppObject.call(this,args);
+			this._init({
+				testArg:1,
+				testArg2:{color:'black',width:5}
+			});
+		}
+		test1 = new Test({name:'test1'});
+		assert(test1.testArg == 1);
+		assert(test1.name == 'test1');
+		assert(test1.testArg2.color == 'black')
+		assert(test1.testArg2.width == 5);
+			
+		test2 = new Test({instance:test1,name:'test2'});
+		
+		assert(test2.testArg == 1);
+		assert(test2.name == 'test2');
+		assert(test2.testArg2 == test1.testArg2)
+		
+		test3 = new Test({id:20,name:'test3',testArg:12,testArg2:45,parent:test1})
+		test2 = new Test({instance:test3});
+		
+		assert(test2.testArg == 12);
+		assert(test2.name == 'test3');
+		assert(test2.testArg2 == 45)
+		assert(test2.parent == test1);
+		
+		test2 = new Test({instance:test3,parent:test3,testArg2:'hello world'});
+		
+		assert(test2.testArg == 12);
+		assert(test2.name == 'test3');
+		assert(test2.testArg2 == 'hello world')
+		assert(test2.parent == test3);
+		
+		
+		// Multiple children
+		
+		//assert(test3.hasChild(test1)!=-1);
+		//assert(test3.hasChild(test2)!=-1);
+	
+	}
+	
+	function testDisplayItem(){
+		Test.inheritsFrom(DisplayItem);
+		function Test(args){
+			DisplayItem.call(this,args);
+		}
+		test = new Test()
+		assert(test.getX()==0);
+		assert(test.getY()==0);
+		assert(test.getWidth()==0);
+		assert(test.getHeight()==0);
+		
+		test = new Test({x:100,y:40,width:100,height:20});
+		assert(test.getX()==100);
+		assert(test.getY()==40);
+		assert(test.getWidth()==100);
+		assert(test.getHeight()==20);
+
+		pos = test.getPos();
+		assert(pos.x==100)
+		assert(pos.y==40)
+		
+		test.setPos({x:20,y:10});
+		pos = test.getPos();
+		assert(pos.x==20)
+		assert(pos.y==10)
+		
+		size = test.getSize();
+		assert(size.width==100);
+		assert(size.height==20);
+		
+		test.setSize({width:20,height:10});
+		size = test.getSize();
+		assert(size.width==20)
+		assert(size.height==10)
+		
+		test = new Test({x:10,y:10})
+		test2 = new Test({x:10,y:10,parent:test});
+
+		assert(test2.getAbsolutePos().x==20)
+		assert(test2.getAbsolutePos().y==20);
+		
+		/* // This functionality would be nice, however there needs to be some
+		// changes in the way that the argument parameters are handled, see 
+		// AppObjects.js -> DisplayItem constructor -> this._init
+		test = new Test({x:50,y:50});
+		test2 = new Test({pos:test.getPos()});
+		pos = test2.getPos();
+		console.log(pos);
+		assert(pos.x==50)
+		assert(pos.y==50)
+		*/
+	}
+
+	
+	// Need to fix style class management system, not important right now
+	function testHtmlItem(){
+		test = new HtmlItem();
+		
+		assert(test.getStyle()=='');
+		assert(test.getClasses().length==0);
+		
+		test = new HtmlItem({style:'color:#000000;',classes:['test','yes']})
+		assert(test.getStyle() == 'color:#000000;');
+		//console.log(test.getClasses())
+	}
+
+	
+	
+	
+  </script>
+ </body>
+</html>

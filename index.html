@@ -1,0 +1,143 @@
+<html>
+<head>
+<title>| CSC 575 | WebVode | Colter Mcquay |</title>
+<script type='text/javascript' src='http://code.jquery.com/jquery-1.6.4.min.js'></script>
+<script type='text/javascript' src='js/lib/processing.js'></script>
+<script type='text/javascript' src='js/lib/dsp/dsp.js'></script>
+<script type='text/javascript' src='js/functions.js'></script>
+<script type='text/javascript' src='js/DataTypes.js'></script>
+<script type='text/javascript' src='js/TypedArrayFunctions.js'></script>
+<script type='text/javascript' src='js/AppObjects.js'></script>
+<script type='text/javascript' src='js/AudioClip.js'></script>
+<script type='text/javascript' src='js/AudioStretcher.js'></script>
+<script type='text/javascript' src='js/AudioWarper.js'></script>
+
+
+<!--
+<script type='text/javascript' src='js/appObjects.js'></script>
+<script type='text/javascript' src='webCLObjects.js'></script>
+<script id="clProgramVectorAdd" type="text/x-opencl" src='webCLKernels.txt'></script>
+-->
+<style>
+	body{color:#FFFFFF;}
+	fieldset{border:1px solid #666666;color:#555555;}
+	fieldset input, fieldset button{background:#232323; color:#555555; border:0px;}
+	
+	fieldset:hover{border:1px solid #AAAAAA;color:#AAAAAA;}
+	fieldset:hover input,fieldset:hover button{background:#AAAAAA; color:#000000; border:1px;}
+	fieldset:hover button:hover{background:#777777;}
+</style>
+</head>
+
+<body style='min-width:1175px;margin-left:1%;margin-right:1%;'>
+	<div id='header'>
+		<img src="images/html5_badge.png" style='float:left;width:150px;'/>
+		<center>
+			<h1 >Audio Warper</h1>
+		</center>
+		<div style='clear:both'></div>
+	</div>
+	<div id='App'>
+		<center>
+			<div id='application' style='margin-top:5%;'></div>						
+		</center>
+		<div id='controlBox'></div>	
+	</div>
+</body>
+</html>
+<script type='text/javascript'>
+	function rgbToHex(rgbString){
+		
+		var parts = rgbString.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+		// parts now should be ["rgb(0, 70, 255", "0", "70", "255"]
+
+		delete (parts[0]);
+		for (var i = 1; i <= 3; ++i) {
+			parts[i] = parseInt(parts[i]).toString(16);
+			if (parts[i].length == 1) parts[i] = '0' + parts[i];
+		}
+		var hexString = parts.join(''); // "0070ff"
+		return hexString;
+	}
+
+	var app = new MainApplication({updateInterval:200,width:1175,height:501,name:'WarpApplication',id:'application'});
+	var warper = new AudioWarper({
+		name:'timeWarper',
+		displayName:'Audio Warper',
+		parent:app,
+		x:0,y:0,
+		width:1174,height:500,
+		stroke:{color:[220,0,0],width:1},
+		fill:{color:[40,0,0]},
+		disabledStyle:{
+			stroke:{color:[80]},
+			fill:{color:[40,0,0]}
+		}
+	});
+	warper.loadFile("audio/sunshine.ogg"); 
+/*
+	var test = new CanvasItem({
+		parent:app,
+		x:50,y:50,
+		width:300,height:300,
+		stroke:{color:[45],width:1},
+		fill:{color:[200]}
+	})
+		
+	var test2 = new CanvasItem({
+		parent:test,
+		x:50,y:50,
+		width:300,height:300,
+		stroke:{color:[0,45,45,100],width:1},
+		fill:{color:[180,60,60,60]}
+	})
+*/
+	$(document).ready(function(){
+		app.init();
+		app.attachControls("#controlBox");
+
+		$('body').css("background-color",rgbToHex("rgb("+warper.fill.color.join(",")+")"))
+		
+	});
+</script>
+<!--
+<script type='text/javascript'> 
+	//var toms = new AudioClip("Tom's Diner");
+	//toms.readAudio('audio/toms.ogg');
+	//var tomsStretched = new AudioClip("Tom's Diner Stretched");
+	var audio = new AudioClip("original");
+	var audioStretched = new AudioClip("stretched");
+	audio.readAudio("audio/toms.ogg");
+	
+	/*
+	var audioSignal = new Float32Array(audio.sampleRate);  // 2 seconds of audio
+	var frequency = 441;
+	for(var i = 0;i<audioSignal.length;++i){
+		audioSignal[i] = Math.sin(Math.PI*2*i*frequency/audio.sampleRate);
+	}	
+	audio.setSamples(audioSignal);
+	*/
+	
+	
+	ObjectAction.call(audio,"Play Original",audio.play);
+	ObjectAction.call(audioStretched,"Play Processed",audioStretched.play);
+	
+		
+	var mainApplication = new MainApplication(800,600,'mainApp','application');
+
+	// Create the stretcher object.
+	var stretcher = new AudioStretcher(audio,audioStretched);
+	stretcher.setPos({x:0,y:0}).setSize({width:750,height:600});
+	ObjectAction.call(stretcher,"Stretch",stretcher.stretch);
+	stretcher.setParent(mainApplication);
+	
+	$(document).ready(function(){
+		mainApplication.init();
+		$("#global_controls").append(stretcher.getControls()).append(stretcher.getActions()).append(audio.getActions()).append(audioStretched.getActions());
+		stretcher.bindControls().bindActions();
+		audio.bindActions();
+		audioStretched.bindActions();
+		
+	});
+</script>
+-->
